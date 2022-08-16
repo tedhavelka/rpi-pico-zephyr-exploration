@@ -44,6 +44,10 @@
 */
 
 
+/*
+ *  Break out an extra LED on general purpose I/O pin 7:
+ */
+
 / {
         leds {
                 compatible = "gpio-leds";
@@ -57,6 +61,49 @@
                 led1 = &led1;
         };
 };
+
+
+
+/*
+ *  Add dts support for RP2040 SPI controller first of two instances:
+ *
+ *  REF  https://www.nxp.com/docs/en/application-note/AN5125.pdf
+ *  REF   devicetree/bindings/arm/gic.txt
+
+For the ARM GIC, the bindings are similar but different. The first cell defines the interrupt type:
+• 0 = SPI interrupts
+• 1 = PPI interrupts
+The second cell contains the interrupt number. SPI interrupts number 0-987, while PPI interrupts number 0-15.
+The third cell represents level sense:
+• 1 = low-to-high edge sensitive
+• 2 = high-to-low edge sensitive
+• 4 = active-high level sensitive
+• 8 = active-low level-sensitive
+The complete description of GIC bindings can be found in Documentation/devicetree/bindings/arm/gic.txt.
+
+ *  See [workspace]/zephyr/dts/bindings/spi/snps,designware-spi.yaml for required SPI dts fields
+ *
+ *  See page 60 of rp2040.pdf datasheet for interrupt number of SPI0_IRQ, it is 18.
+ *
+ */
+
+/ {
+    spi@4003c000 {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        compatible = "snps,designware-spi";
+        reg = <0x4003c000 0x1000>;
+        interrupt-parent = < &nvic >;
+	interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
+/*
+	clocks = <&rcc SPI1_K>;
+	resets = <&rcc SPI1_R>;
+*/
+        label="SPI_0";
+        status="ok";
+    };
+};
+
 
 
 
