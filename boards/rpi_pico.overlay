@@ -88,19 +88,21 @@ The complete description of GIC bindings can be found in Documentation/devicetre
  */
 
 / {
-    spi@4003c000 {
-        #address-cells = <1>;
-        #size-cells = <0>;
-        compatible = "snps,designware-spi";
-        reg = <0x4003c000 0x1000>;
-        interrupt-parent = < &nvic >;
-	interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
+    soc {
+        spi0: spi@4003c000 {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            compatible = "snps,designware-spi";
+            reg = <0x4003c000 0x1000>;
+            interrupt-parent = < &nvic >;
+        	interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
 /*
 	clocks = <&rcc SPI1_K>;
 	resets = <&rcc SPI1_R>;
 */
-        label="SPI_0";
-        status="ok";
+            label="SPI_0";
+            status="ok";
+        };
     };
 };
 
