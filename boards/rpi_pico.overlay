@@ -17,29 +17,29 @@
 
 
 / {
-	led_strip: ws2812 {
-		compatible = "worldsemi,ws2812-gpio";
+    led_strip: ws2812 {
+        compatible = "worldsemi,ws2812-gpio";
 
 // Ted reducing from 16 to 1 for DEV-18288 board:
-		chain-length = <1>;
-		color-mapping = <LED_COLOR_ID_GREEN
-				 LED_COLOR_ID_RED
-				 LED_COLOR_ID_BLUE>;
+        chain-length = <1>;
+        color-mapping = <LED_COLOR_ID_GREEN
+                 LED_COLOR_ID_RED
+                 LED_COLOR_ID_BLUE>;
 */
-		/*
-		 * Arduino D11 / P0.25, which was chosen to match the pin
-		 * used in nrf52dk_nrf52832.overlay.
-		 * 2022-08-05 - P0.25 also used for data in line of WS2812 on Sparkfun DEV-18288 board:
-		 */
+        /*
+         * Arduino D11 / P0.25, which was chosen to match the pin
+         * used in nrf52dk_nrf52832.overlay.
+         * 2022-08-05 - P0.25 also used for data in line of WS2812 on Sparkfun DEV-18288 board:
+         */
 /*
 
-		in-gpios = <&gpio0 25 0>;
-		label = "WS2812";
-	};
+        in-gpios = <&gpio0 25 0>;
+        label = "WS2812";
+    };
 
-	aliases {
-		led-strip = &led_strip;
-	};
+    aliases {
+        led-strip = &led_strip;
+    };
 };
 */
 
@@ -95,15 +95,43 @@ The complete description of GIC bindings can be found in Documentation/devicetre
             compatible = "snps,designware-spi";
             reg = <0x4003c000 0x1000>;
             interrupt-parent = < &nvic >;
-        	interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
+            interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
 /*
-	clocks = <&rcc SPI1_K>;
-	resets = <&rcc SPI1_R>;
+    clocks = <&rcc SPI1_K>;
+    resets = <&rcc SPI1_R>;
 */
             label="SPI_0";
-            status="ok";
+            status="okay";
         };
+
+// Notes:
+// (1) Beyond RP2040.pdf datasheet DMA chapter see also section 2.2.2 "Detail" under 2.2 "Address Map",
+//      this reference used to make best guess for DMA reg property size of 0x1000.
+// (2) https://elixir.bootlin.com/linux/v3.12.36/source/Documentation/devicetree/bindings/dma/dma.txt
+//      This reference explains meaning and typical use of #dma-cells node property
+//      of the DMA device node.  Here choose one per file
+//      [workspace]/zephyr/dts/bindings/dma/snps,designware-dma.yaml
+// (3) See RP2040.pdf datasheet section 2.3.2, table 80 "Interrupts" for choice of 11 and 12
+//      in DMA interupts node property.
+
+        dma1: dma@50000000 {
+            compatible = "snps,designware-dma";
+            reg = <0x50000000 0x1000>;
+            #dma-cells = <1>;
+            interrupts = <11 RPI_PICO_DEFAULT_IRQ_PRIORITY 12 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
+            status = "okay";
+            label = "DMA_1";
+        };
+
+/*
+    Sample code from [workspace]/zephyr//dts/arm/st/f4/stm32f4.dtsi:
+
+            interrupts = <11 0 12 0 13 0 14 0 15 0 16 0 17 0 47 0>;
+            clocks = <&rcc STM32_CLOCK_BUS_AHB1 0x200000>;
+*/
+
     };
+
 };
 
 
