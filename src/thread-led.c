@@ -1,8 +1,10 @@
-//======================================================================
-//
-//  Project:  RP2040 Exploration
-//
-//======================================================================
+/*
+ *
+ *  Project:  RP2040 Exploration
+ *
+ *     File:  thread-led.c
+ *
+ */
 
 
 
@@ -160,11 +162,11 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
 
         if ( led_is_on )
         {
-            printk("- MARK - 0808 led on\n\r");
+            printk("- MARK - 0808 led off\n\r");
         }
         else
         {
-            printk("- MARK - 0808 led off\n\r");
+            printk("- MARK - 0808 led on\n\r");
         }
 #else
         switch(present_led_task)

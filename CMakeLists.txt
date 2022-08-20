@@ -6,3 +6,7 @@ project(blinky)
 
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/thread-led.c)
+target_sources(app PRIVATE src/thread-hello-dma.c)
+
+
+

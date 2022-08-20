@@ -2,6 +2,10 @@
  * Copyright (c) 2016 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * Project:  https://github.com/tedhavelka/rpi-pico-zephyr-exploration
+ *
+ * File:  main.c
  */
 
 
@@ -40,7 +44,7 @@ LOG_MODULE_REGISTER(main);
 // The devicetree node identifier for the "led0" alias.
 #define LED0_NODE DT_ALIAS(led0)
 
-
+// Following symbol sets a modest upper bound on periodic "mark" message, akin to heartbeat LED:
 #define MARK_CYCLE_LENGTH 6
 
 
@@ -108,6 +112,11 @@ void main(void)
 
 // NEED to capture return value from this routine call:
     thread_led__initialize();
+
+#ifdef DEV_0819_ENABLE_PICO_HELLO_DMA_CODE
+    thread_hello_dma__initialize();
+#endif
+
 
     while (1)
     {
