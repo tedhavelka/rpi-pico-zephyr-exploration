@@ -8,6 +8,8 @@ project(rpi-pico-exploration)
 # 2022-08-20
 zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio/include)
 zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio_uart/include)
+zephyr_include_directories(../pico-sdk/src/common/pico_sync/include)
+zephyr_include_directories(../pico-sdk/src/common/pico_time/include)
 
 
 target_sources(app PRIVATE src/main.c)
