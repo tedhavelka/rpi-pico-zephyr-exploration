@@ -21,8 +21,22 @@
 // - SECTION - defines
 //----------------------------------------------------------------------
 
+// Defines for thread attributes required by Zephyr RTOS:
 #define THREAD_HELLO_DMA__PRIORITY (7)
 #define THREAD_HELLO_DMA__STACK_SIZE 512
+
+// Defines to aid thread ID by app and periodic thread execution, not Zephyr requirements:
+#define MODULE_ID__THREAD_HELLO_DMA "thread-hello-dma"
+
+#define SLEEP_TIME__THREAD_HELLO_DMA__MS (1000)
+
+
+
+//----------------------------------------------------------------------
+// - SECTION - file scoped
+//----------------------------------------------------------------------
+
+static uint32_t sleep_period__thread_hello_dma__fsv = SLEEP_TIME__THREAD_HELLO_DMA__MS;
 
 
 
@@ -46,7 +60,7 @@ int thread_hello_dma__initialize(void)
                                             0,
                                             K_MSEC(1000)); // K_NO_WAIT);
 
-    rstatus = k_thread_name_set(thread_hello_dma__tid, MODULE_ID__THREAD_LED);
+    rstatus = k_thread_name_set(thread_hello_dma__tid, MODULE_ID__THREAD_HELLO_DMA);
     if ( rstatus == 0 ) { } // avoid compiler warning about unused variable - TMH
 
     sleep_period__thread_hello_dma__fsv = SLEEP_TIME__THREAD_HELLO_DMA__MS;
@@ -56,13 +70,16 @@ int thread_hello_dma__initialize(void)
 
 
 
-void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
+void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
 {
     uint32_t rstatus = ROUTINE_OK;
 
     if ( rstatus == 0 ) { }
 
-
+    while ( 1 )
+    {
+        k_msleep(sleep_period__thread_hello_dma__fsv);
+    }
 }
 
 
