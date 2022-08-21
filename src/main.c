@@ -31,6 +31,7 @@ LOG_MODULE_REGISTER(main);
 #include "main.h"
 #include "development-defines.h"
 #include "thread-led.h"
+#include "thread-hello-dma.h"
 
 
 

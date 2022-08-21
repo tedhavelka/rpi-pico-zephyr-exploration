@@ -8,10 +8,17 @@
 
 
 
+// newlibc headers:
 #include <stdint.h>                // to provide define of uint32_t
 
+// Zephyr RTOS headers:
 #include <zephyr.h>
 
+// RaspberryPi Pico SDK headers:  ( see ../notes/pico-stdio-h-include-notes.txt for reason to use pico/ relative path )
+#include <pico/stdio.h>
+#include <pico/stdio_uart.h>
+
+// app headers:
 #include "thread-hello-dma.h"
 #include "app-return-values.h"
 
@@ -75,6 +82,9 @@ void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
     uint32_t rstatus = ROUTINE_OK;
 
     if ( rstatus == 0 ) { }
+
+// 2022-08-20 - First call to Pico SDK library:
+    stdio_init_all();
 
     while ( 1 )
     {
