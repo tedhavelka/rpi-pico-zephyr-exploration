@@ -25,11 +25,12 @@ endif ()
 # --- COPY BLOCK END ---
 
 
+
 # 2022-08-20
-zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio/include)
-zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio_uart/include)
-zephyr_include_directories(../pico-sdk/src/common/pico_sync/include)
-zephyr_include_directories(../pico-sdk/src/common/pico_time/include)
+#zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio/include)
+#zephyr_include_directories(../pico-sdk/src/rp2_common/pico_stdio_uart/include)
+#zephyr_include_directories(../pico-sdk/src/common/pico_sync/include)
+#zephyr_include_directories(../pico-sdk/src/common/pico_time/include)
 
 zephyr_include_directories(../modules/hal/rpi_pico/src/host/pico_platform/include)
 zephyr_include_directories(../modules/hal/rpi_pico/src/rp2_common/hardware_claim/include)
@@ -51,21 +52,21 @@ target_sources(app PRIVATE src/thread-hello-dma.c)
 ## 2022-08-22 Monday work:
 
 # To provide dma_claim_unused_channel():
-zephyr_include_directories(../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include) # /hardware/dma.h
+#zephyr_include_directories(../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include)  # /hardware/dma.h
 target_sources(app PRIVATE ../modules/hal/rpi_pico/src/rp2_common/hardware_dma/dma.c)
 
 # To provide hardware_claim.h and claim.c respectively:
-zephyr_include_directories(../modules/hal/rpi_pico/src/rp2_common/hardware_claim/include)
-target_sources(app PRIVATE ../modules/hal/rpi_pico/src/rp2_common/hardware_claim/claim.c)
+#zephyr_include_directories(../modules/hal/rpi_pico/src/rp2_common/hardware_claim/include)
+target_sources(app PRIVATE ../modules/hal/rpi_pico/src/rp2_common/hardware_claim/claim.c)  # to provide hw_claim_unused_from_range()
 
 # To provide pico-sdk panic() routine:
-#zephyr_include_directories(../modules/hal/rpi_pico/src/host/pico_platform/include/pico)
 #zephyr_include_directories(../modules/hal/rpi_pico/src/host/pico_platform/include)
 target_sources(app PRIVATE ../modules/hal/rpi_pico/src/host/pico_platform/platform_base.c)
 
 # Symbol 'PICO_WEAK_FUNCTION_DEF' does not seem to be expanded when gcc compiling code - TMH
 # [workspace]/modules/hal/rpi_pico/src/host/pico_platform/include/pico/platform.h
 
+#zephyr_include_directories(../pico-sdk/src/rp2_common/hardware_dma/include)
 
 
 

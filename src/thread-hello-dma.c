@@ -15,14 +15,12 @@
 #include <zephyr.h>
 
 // RaspberryPi Pico SDK headers:  ( see ../notes/pico-stdio-h-include-notes.txt for reason to use pico/ relative path )
-#include <pico/stdio.h>
-#include <pico/stdio_uart.h>
-#include <hardware/dma.h>          // CMakeLists.txt adds zephyr_include_directory:
-                                   // <s> ../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include/hardware </s>
-                                   // ../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include
+//#include <pico/stdio.h>
+//#include <pico/stdio_uart.h>
+#include <hardware/dma.h>          // to provide dma_claim_unused_channel()
 
 // 2022-08-22 MON
-#include <pico/platform.h> . . . are we including this file?  Build process reports no error
+//#include <pico/platform.h> //. . . are we including this file?  Build process reports no error
 // finding it yet PICO_WEAK_FUNCTION_DEF seems not to expand per its def in platform.h - TMH
 //#include <platform.h>
 
