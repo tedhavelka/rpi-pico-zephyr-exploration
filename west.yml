@@ -25,6 +25,12 @@ manifest:
       revision: 1.4.0
       url: https://github.com/raspberrypi/pico-sdk
 
+    # RaspberryPi Pico examples
+    - name: pico-examples
+      path: pico-examples
+      revision: sdk-1.4.0
+      url: git@github.com:raspberrypi/pico-examples
+
   self:
     # This repository should be cloned to 
     path: rpi-pico-zephyr-exploration

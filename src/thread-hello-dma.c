@@ -17,6 +17,14 @@
 // RaspberryPi Pico SDK headers:  ( see ../notes/pico-stdio-h-include-notes.txt for reason to use pico/ relative path )
 #include <pico/stdio.h>
 #include <pico/stdio_uart.h>
+#include <hardware/dma.h>          // CMakeLists.txt adds zephyr_include_directory:
+                                   // <s> ../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include/hardware </s>
+                                   // ../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include
+
+// 2022-08-22 MON
+#include <pico/platform.h> . . . are we including this file?  Build process reports no error
+// finding it yet PICO_WEAK_FUNCTION_DEF seems not to expand per its def in platform.h - TMH
+//#include <platform.h>
 
 // app headers:
 #include "thread-hello-dma.h"
@@ -84,7 +92,11 @@ void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
     if ( rstatus == 0 ) { }
 
 // 2022-08-20 - First call to Pico SDK library:
-    stdio_init_all();
+//    stdio_init_all();
+
+// From pico-examples/dma/hello_dma/hello_dma.c:
+    // Get a free channel, panic() if there are none
+    int chan = dma_claim_unused_channel(true);
 
     while ( 1 )
     {
