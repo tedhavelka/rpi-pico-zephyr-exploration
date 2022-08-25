@@ -19,11 +19,11 @@ manifest:
       revision: main
       url: https://github.com/tedhavelka/zephyr-driver-work-v2
 
-#    # RaspberryPi Pico SDK, for DMA and SPI driver study . . .
-#    - name: pico-sdk
-#      path: pico-sdk
-#      revision: 1.4.0
-#      url: https://github.com/raspberrypi/pico-sdk
+    # RaspberryPi Pico SDK, for DMA and SPI driver study . . .
+    - name: pico-sdk
+      path: pico-sdk
+      revision: 1.4.0
+      url: https://github.com/raspberrypi/pico-sdk
 
 #    # RaspberryPi Pico examples
 #    - name: pico-examples

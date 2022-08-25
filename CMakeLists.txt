@@ -1,9 +1,26 @@
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20.0)
+
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+
+## 2022-08-25 - branch pico-sdk-integration
+## See https://github.com/zephyrproject-rtos/hal_rpi_pico default readme for
+## section titled "Or with the Raspberry Pi Pico SDK as a submodule"
+
+# initialize pico-sdk from submodule
+# note: this must happen before project()
+include(pico-sdk/pico_sdk_init.cmake)
+
+
+
+## Note some cmake functions must be called before cmake project() directive - TMH
 project(rpi-pico-exploration)
 
+
+
+# initialize the Raspberry Pi Pico SDK
+pico_sdk_init()
 
 
 # Copied block from https://github.com/raspberrypi/pico-sdk/blob/master/cmake/pico_pre_load_platform.cmake
