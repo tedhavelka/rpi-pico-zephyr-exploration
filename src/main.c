@@ -11,6 +11,14 @@
 
 
 //----------------------------------------------------------------------
+// - SECTION - Pico SDK excerpt temporarily here to overcome build error with platform_base.h
+//----------------------------------------------------------------------
+
+
+
+
+
+//----------------------------------------------------------------------
 // - SECTION - includes, NEED to review line by line which are needed - TMH
 //----------------------------------------------------------------------
 
@@ -21,11 +29,16 @@
 LOG_MODULE_REGISTER(main);
 
 
-#include <zephyr/zephyr.h>
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/device.h>
 
 #include <zephyr/drivers/led_strip.h>   // to provide ...
+
+
+// Pico SDK headers:
+//#include <platform.h>
+
 
 // 2022-08-04 added for simple factoring during early UART tests:
 #include "main.h"

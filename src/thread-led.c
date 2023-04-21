@@ -16,16 +16,15 @@
 #include <stdint.h>                // to provide define of uint32_t
 
 // Zephyr RTOS related:
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 // Zephyr device and target processor peripheral API headers:
-#include <device.h>
-#include <devicetree.h>
-#include <drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
 
 #include "thread-led.h"
 #include "app-return-values.h"
-
 
 
 
@@ -37,8 +36,10 @@
 #define MODULE_ID__THREAD_LED "thread-led"
 #define SLEEP_TIME__THREAD_LED__MS (3000)
 
+//#define LED0_NODE DT_ALIAS(led0)
 
-#define LED0_NODE DT_ALIAS(led0)
+// - DEV 0419 ----------------------------------------------------------
+#if 0
 
 #if DT_NODE_HAS_STATUS(LED0_NODE, okay)
 #warning --- --- --- macro evaluating 'led0' dts alias returns true --- --- ---
@@ -67,20 +68,30 @@
 #define LED1_FLAGS   0
 #endif
 
+#endif // 0
+// - DEV 0419 ----------------------------------------------------------
+
+//----------------------------------------------------------------------
+// - SECTION - file scoped
+//----------------------------------------------------------------------
+
+// Per zephyr/boards/arm/rpi_pico/rpi_pico.dts:
+#define LED0_NODE DT_NODELABEL(led0)
+// Per local dts overlay file:
+#define LED1_NODE DT_ALIAS(red_led)
+
+static const struct gpio_dt_spec dt_spec_red_led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+static const struct gpio_dt_spec dt_spec_green_led = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
 #define SLEEP_TIME_MS (5000)
 
-
-
-
-
 static uint32_t sleep_period__thread_led__fsv;
 
+#if 0
 static const struct device *dev;
 
 static const struct device *dev_led1;
-
-
+#endif
 
 
 //----------------------------------------------------------------------
@@ -112,53 +123,34 @@ int thread_led__initialize(void)
     return (int)thread_led__tid;
 }
 
-
-
 void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
 {
-//    const struct device *dev;
     bool led_is_on = true;
-    int ret;
-
     int main_loop_count = 0;
-    uint32_t rstatus = ROUTINE_OK;
+    int rstatus = ROUTINE_OK;
 
-
-// - Zephyr device initialization for LED zero:
-
-    dev = device_get_binding(LED0_LABEL);
-    if (dev == NULL) {
+    if (!device_is_ready(dt_spec_red_led.port) ||
+        !device_is_ready(dt_spec_green_led.port))
+    {
+        printk("- thread_leds - one or more ports not ready to drive LEDS!  Exiting . . .\n");
         return;
     }
 
-    ret = gpio_pin_configure(dev, LED0_PIN, GPIO_OUTPUT_ACTIVE | LED0_FLAGS);
-    if (ret < 0) {
+    int led_red_ok = gpio_pin_configure_dt(&dt_spec_red_led, GPIO_OUTPUT_ACTIVE);
+    int led_grn_ok = gpio_pin_configure_dt(&dt_spec_green_led, GPIO_OUTPUT_INACTIVE);
+
+    if ( led_red_ok || led_grn_ok )
+    {
+        printk("- thread_leds - trouble configuring GPIO ports for Nexus LEDs!  Thread finishing . . .\n");
         return;
     }
-
-// - Zephyr device initialization for LED one:
-
-    dev_led1 = device_get_binding(LED1_LABEL);
-    if (dev_led1 == NULL) {
-        return;
-    }
-
-    ret = gpio_pin_configure(dev_led1, LED1_PIN, GPIO_OUTPUT_ACTIVE | LED1_FLAGS);
-    if (ret < 0) {
-        return;
-    }
-
-
-
 
     while (1)
     {
-
 #if 1
-        gpio_pin_set(dev, LED1_PIN, (int)led_is_on);
-        led_is_on = !led_is_on;
-//        k_msleep(SLEEP_TIME_MS);
-        k_msleep(sleep_period__thread_led__fsv);
+        rstatus = gpio_pin_toggle_dt(&dt_spec_red_led);
+
+        rstatus = gpio_pin_toggle_dt(&dt_spec_green_led);
 
         if ( led_is_on )
         {
@@ -195,7 +187,6 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
 // zero sleep time in case / until we determine what impact is of
 // blink patterns with zero or small period defined in them:
 
-
 // *** DEBUG 0314 BEGIN *** QUESTION where is ten millisecond current spike originating? - TMH
 
 //        if ( present_alert == PP_ALERT__NONE )
@@ -208,10 +199,9 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
 //        }
 
 // *** DEBUG 0314 END ***
-
-
 #endif
 
+        k_msleep(sleep_period__thread_led__fsv);
         main_loop_count++;
     }
 }

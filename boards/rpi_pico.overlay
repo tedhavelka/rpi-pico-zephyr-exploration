@@ -11,40 +11,6 @@
 /* https://developer.toradex.com/linux-bsp/how-to/device-tree/device-tree-customization/ */
 
 /*
-/ {
-        /delete-node/ led_0;
-};
-
-
-/ {
-    led_strip: ws2812 {
-        compatible = "worldsemi,ws2812-gpio";
-
-// Ted reducing from 16 to 1 for DEV-18288 board:
-        chain-length = <1>;
-        color-mapping = <LED_COLOR_ID_GREEN
-                 LED_COLOR_ID_RED
-                 LED_COLOR_ID_BLUE>;
-*/
-        /*
-         * Arduino D11 / P0.25, which was chosen to match the pin
-         * used in nrf52dk_nrf52832.overlay.
-         * 2022-08-05 - P0.25 also used for data in line of WS2812 on Sparkfun DEV-18288 board:
-         */
-/*
-
-        in-gpios = <&gpio0 25 0>;
-        label = "WS2812";
-    };
-
-    aliases {
-        led-strip = &led_strip;
-    };
-};
-*/
-
-
-/*
  *  Break out an extra LED on general purpose I/O pin 7:
  */
 
@@ -52,57 +18,17 @@
         leds {
                 compatible = "gpio-leds";
                 led1: led_1 {
-                        gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
-                        label = "LED1";
+                        gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
                 };
         };
 
         aliases {
-                led1 = &led1;
+                red-led = &led1;
         };
 };
 
-
-
-/*
- *  Add dts support for RP2040 SPI controller first of two instances:
- *
- *  REF  https://www.nxp.com/docs/en/application-note/AN5125.pdf
- *  REF   devicetree/bindings/arm/gic.txt
-
-For the ARM GIC, the bindings are similar but different. The first cell defines the interrupt type:
-• 0 = SPI interrupts
-• 1 = PPI interrupts
-The second cell contains the interrupt number. SPI interrupts number 0-987, while PPI interrupts number 0-15.
-The third cell represents level sense:
-• 1 = low-to-high edge sensitive
-• 2 = high-to-low edge sensitive
-• 4 = active-high level sensitive
-• 8 = active-low level-sensitive
-The complete description of GIC bindings can be found in Documentation/devicetree/bindings/arm/gic.txt.
-
- *  See [workspace]/zephyr/dts/bindings/spi/snps,designware-spi.yaml for required SPI dts fields
- *
- *  See page 60 of rp2040.pdf datasheet for interrupt number of SPI0_IRQ, it is 18.
- *
- */
-
 / {
     soc {
-        spi0: spi@4003c000 {
-            #address-cells = <1>;
-            #size-cells = <0>;
-            compatible = "snps,designware-spi";
-            reg = <0x4003c000 0x1000>;
-            interrupt-parent = < &nvic >;
-            interrupts = <18 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
-/*
-    clocks = <&rcc SPI1_K>;
-    resets = <&rcc SPI1_R>;
-*/
-            label="SPI_0";
-            status="okay";
-        };
 
 // Notes:
 // (1) Beyond RP2040.pdf datasheet DMA chapter see also section 2.2.2 "Detail" under 2.2 "Address Map",
