@@ -34,7 +34,7 @@
 
 #define THREAD_LED__PRIORITY (8)
 #define MODULE_ID__THREAD_LED "thread-led"
-#define SLEEP_TIME__THREAD_LED__MS (3000)
+#define SLEEP_TIME__THREAD_LED__MS (750)
 
 //#define LED0_NODE DT_ALIAS(led0)
 
@@ -145,20 +145,22 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
         return;
     }
 
+    rstatus = gpio_pin_toggle_dt(&dt_spec_red_led);
+
     while (1)
     {
 #if 1
         rstatus = gpio_pin_toggle_dt(&dt_spec_red_led);
-
         rstatus = gpio_pin_toggle_dt(&dt_spec_green_led);
+        led_is_on = !(led_is_on);
 
         if ( led_is_on )
         {
-            printk("- MARK - 0808 led off\n\r");
+            printk("- MARK - 0421 red led on\n\r");
         }
         else
         {
-            printk("- MARK - 0808 led on\n\r");
+            printk("- MARK - 0421 red led off\n\r");
         }
 #else
         switch(present_led_task)

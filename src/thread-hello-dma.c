@@ -1,31 +1,20 @@
-/*
- *
+/**
  *  Project:  RP2040 Exploration
- *
  *     File:  thread-hello-dma.c
- *
  */
 
 
 
 // newlibc headers:
 #include <stdint.h>                // to provide define of uint32_t
+#include <stdio.h>                 // to provide puts() C function
 
 // Zephyr RTOS headers:
 #include <zephyr/kernel.h>
 
-// RaspberryPi Pico SDK headers:  ( see ../notes/pico-stdio-h-include-notes.txt for reason to use pico/ relative path )
-//#include <pico/stdio.h>
-//#include <pico/stdio_uart.h>
+// Pico SDK headers:
 #include <rp2_common/hardware_dma/include/hardware/dma.h>  // to provide dma_claim_unused_channel()
-
-// 2022-08-25
-//#include "../../modules/hal/rpi_pico/src/host/pico_platform/include/pico/platform.h"
 #include <platform.h>
-
-// 2022-08-22 MON, 2022-08-25:
-// finding it yet PICO_WEAK_FUNCTION_DEF seems not to expand per its def in platform.h - TMH
-//#include <platform.h>
 
 // app headers:
 #include "thread-hello-dma.h"
@@ -88,6 +77,10 @@ int thread_hello_dma__initialize(void)
 
 void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
 {
+// Data will be copied from src to dst
+    const char src[] = "Hello, world! (from DMA)";
+    char dst[count_of(src)];
+
     uint32_t rstatus = ROUTINE_OK;
 
     if ( rstatus == 0 ) { }
@@ -99,9 +92,31 @@ void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
     // Get a free channel, panic() if there are none
     int chan = dma_claim_unused_channel(true);
 
+    // 8 bit transfers. Both read and write address increment after each
+    // transfer (each pointing to a location in src or dst respectively).
+    // No DREQ is selected, so the DMA transfers as fast as it can.
+
+    dma_channel_config c = dma_channel_get_default_config(chan);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+    channel_config_set_read_increment(&c, true);
+    channel_config_set_write_increment(&c, true);
+
+    dma_channel_configure(
+        chan,          // Channel to be configured
+        &c,            // The configuration we just created
+        dst,           // The initial write address
+        src,           // The initial read address
+        count_of(src), // Number of transfers; in this case each is 1 byte.
+        true           // Start immediately.
+    );
+
+
+
     while ( 1 )
     {
         k_msleep(sleep_period__thread_hello_dma__fsv);
+
+        puts(dst);
     }
 }
 
