@@ -33,7 +33,7 @@
 // Defines to aid thread ID by app and periodic thread execution, not Zephyr requirements:
 #define MODULE_ID__THREAD_HELLO_DMA "thread-hello-dma"
 
-#define SLEEP_TIME__THREAD_HELLO_DMA__MS (1000)
+#define SLEEP_TIME__THREAD_HELLO_DMA__MS (10000)
 
 
 

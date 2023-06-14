@@ -12,10 +12,17 @@ project(rpi-pico-exploration)
 ## - SECTION - application files
 ##----------------------------------------------------------------------
 
-target_sources(app PRIVATE src/main.c)
-target_sources(app PRIVATE src/thread-led.c)
-target_sources(app PRIVATE src/thread-hello-dma.c)
-target_sources(app PRIVATE src/local_rpi_platform_base.c)
+target_include_directories(app PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_sources(app PRIVATE
+  src/main.c
+  src/thread-led.c
+  src/thread-hello-dma.c
+  src/local_rpi_platform_base.c
+  src/thread-simple-cli.c
+)
 
 
 ##----------------------------------------------------------------------

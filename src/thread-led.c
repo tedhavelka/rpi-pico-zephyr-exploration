@@ -153,7 +153,9 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
         rstatus = gpio_pin_toggle_dt(&dt_spec_red_led);
         rstatus = gpio_pin_toggle_dt(&dt_spec_green_led);
         led_is_on = !(led_is_on);
+#endif
 
+#if 0
         if ( led_is_on )
         {
             printk("- MARK - 0421 red led on\n\r");
@@ -162,7 +164,9 @@ void thread_led__entry_point(void* arg1, void* arg2, void* arg3)
         {
             printk("- MARK - 0421 red led off\n\r");
         }
-#else
+#endif
+
+#if 0
         switch(present_led_task)
         {
 // Note - periodic blink case is the original Nordic Semi 'blinky'

@@ -53,7 +53,7 @@ LOG_MODULE_REGISTER(main);
 //----------------------------------------------------------------------
 
 // 1000 msec = 1 sec
-#define SLEEP_TIME_MS   750 // 1000
+#define SLEEP_TIME_MS   10000
 
 // The devicetree node identifier for the "led0" alias.
 #define LED0_NODE DT_ALIAS(led0)
@@ -106,7 +106,7 @@ static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 
 void main(void)
 {
-    int ret;
+    int rstatus = 0;
 
 #if 1 //
     uint32_t count_for_mark_messages = 0;
@@ -116,21 +116,23 @@ void main(void)
         return;
     }
 
-    ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
+    rstatus = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (rstatus < 0) {
         return;
     }
-
 
     memset(lbuf, 0, SIZE_OF_TEN_BYTES);
 
 // NEED to capture return value from this routine call:
-    thread_led__initialize();
+    rstatus = thread_led__initialize();
 
 #ifdef DEV_0819_ENABLE_PICO_HELLO_DMA_CODE
     thread_hello_dma__initialize();
 #endif
 
+#if 1 // - DEV 0613 -
+    rstatus |= initialize_thread_simple_cli();
+#endif // - DEV 0613 -
 
     while (1)
     {
