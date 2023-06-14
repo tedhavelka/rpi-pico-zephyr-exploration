@@ -1,15 +1,18 @@
 //----------------------------------------------------------------------
 //
-//   Project:  Kionix Driver Work v2 (Zephyr RTOS sensor driver)
+//   Project:  RPi Pico Zephyr exploration
 //
-//  Repo URL:  https://github.com/tedhavelka/kionix-driver-demo
+//  Repo URL:  https://github.com/tedhavelka/rpi-pico-zephyr-exploration
 //
 //      File:  thread_simple_cli.c
+//
+//   Derived from:  Kionix Driver Work v2 (Zephyr RTOS sensor driver)
+//      a project located at https://github.com/tedhavelka/kionix-driver-demo
 //
 //----------------------------------------------------------------------
 
 /*
- *  @Brief:  Zephyr thread to support a very simple command line
+ *  @Brief:  Zephyr thread to support a simple command line
  *     line interface via host board UART.
  *
  *  @References:
@@ -28,7 +31,6 @@
  *     +  build_command_string(...)
  *
  *     +  command_handler(const char* latest_input)
- *
  *
  *
  *  @Implementation:
@@ -111,11 +113,10 @@
 // Project specific includes:
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-//#include "common.h"
+#include "commands.h"
 #include "diagnostics.h"
 #include "module-ids.h"
 #include "return-values.h"
-//#include "kionix-demo-errors.h"
 //#include "banner.h"
 
 // Thread and module data sharing module:
@@ -135,15 +136,16 @@
 //----------------------------------------------------------------------
 
 // defines thread related:
-#define SIMPLE_CLI_THREAD_STACK_SIZE 2048 // 1536 // 3072 // 1024
-#define SIMPLE_CLI_THREAD_PRIORITY 8   // NEED to implement project enum of project thread priorities - TMH
+#define SIMPLE_CLI_THREAD_STACK_SIZE 2048
+
+// NEED to implement project enum of project thread priorities,
+// Note Zephyr thread system supports preemptive and cooperative threads,
+// where cooperative threads have negative priority values.  Details at
+// https://docs.zephyrproject.org/latest/kernel/services/threads/index.html#thread-priorities
+#define SIMPLE_CLI_THREAD_PRIORITY 8
 
 // defines for application or task implemented by this thread:
 #define SLEEP_TIME__SIMPLE_CLI__MS (50)
-
-// Note, for now we limit a token or character strings sans white space
-// to 32 characters, subject to change as needed:
-//#define SIZE_COMMAND_TOKEN (32)
 
 // Note, space permitting we'll store up to ten user commands in a ring buffer:
 #define SIZE_COMMAND_HISTORY (10)     // 2021-10-25 - not yet implemented
@@ -153,7 +155,8 @@
 
 // Note, we start with support for passing up to ten args to a CLI command herein:
 #define MAX_COUNT_SUPPORTED_ARGS (10)
-//#define SUPPORTED_ARG_LENGTH     (16)
+
+#define TERM_STRING "\n\r"
 
 
 
@@ -166,9 +169,6 @@ static char argument_array[MAX_COUNT_SUPPORTED_ARGS][SUPPORTED_ARG_LENGTH];
 
 // Count of latest parsed arguments, tokens following latest command:
 static uint32_t argument_count;
-
-//// Flag to indicate present input character is first backspace in latest series of backspaces:
-//static uint32_t flag_fresh_backspace_keypress = TRUE;
 
 
 
@@ -193,24 +193,15 @@ uint32_t arg_is_hex(const uint32_t index_to_arg, int* value);
 // *************************************************************************************************
 
 // command handler prototypes:
-uint32_t output_data_rate_handler(const char* args);
-uint32_t cli__help_message(const char* args);
-//uint32_t banner_message(const char* args);
 
-// cli-zephyr-stack-info.h . . .
-//extern uint32_t cli__zephyr_2p6p0_stack_statistics(const char* args);
-// banner.h . . .
-//extern uint32_t cli__kd_version(const char* args);
-// banner.h . . .
-//extern uint32_t cli__banner_message(const char* args);
-// cli-zephyr-kernel-timing.h . . .
+uint32_t cli_help_message(const char* args);
 
-// STMicro IIS2DH accelerometer related:
-//extern uint32_t cli__iis2dh_sensor_handler(const char* args);
+uint32_t cli_banner_message(const char* args);
 
-//extern uint32_t cli__request_temperature_reading(const char* args);
+uint32_t cli_report_kcycles(const char* args);
 
-int cli__banner_message(void);
+// Note command prototypes may also be declared in other header files.
+
 
 
 //----------------------------------------------------------------------
@@ -223,9 +214,6 @@ static uint32_t index_to_cmd_history;
 static uint32_t index_within_cmd_token;
 
 static const struct device *uart_for_cli;
-
-
-// work in project git branch 'cli-dev-work-003':
 
 static uint32_t implemented_command_count;
 
@@ -244,10 +232,10 @@ struct cli_command_writers_api
 
 struct cli_command_writers_api kd_command_set[] =
 {
-    { "help", "show supported Kionix demo CLI commands", &cli__help_message },
-    { "?", "show supported Kionix demo CLI commands", &cli__help_message },
-    { "banner", "show brief project identifier string for this Zephyr based app", &cli__banner_message },
-//    { "version", "show this Kionix Driver Demo version info", &cli__kd_version },
+    { "help", "show supported Kionix demo CLI commands", &cli_help_message },
+    { "?", "show supported Kionix demo CLI commands", &cli_help_message },
+    { "banner", "show brief application identifier string", &cli_banner_message },
+//    { "version", "show application version info", &cli__kd_version },
 
 //    { "odr", "IIS2DH Output Data Rate (ODR) set and get command", &output_data_rate_handler },
 //    { "iis2dh", "IMPLEMENTATION UNDERWAY - general purpose iis2dh configuration command", &cli__iis2dh_sensor_handler },
@@ -255,8 +243,8 @@ struct cli_command_writers_api kd_command_set[] =
 
 //    { "st", "show Zephyr RTOS thread stack statistics", &cli__zephyr_2p6p0_stack_statistics },
 //    { "stacks", "alias to `st`", &cli__zephyr_2p6p0_stack_statistics },
-//    { "cyc", "show Zephyr kernel run time cycles count", &cli__show_zephyr_kernel_runtime_cycle_count },
-//    { "cycles", "alias to `cyc`", &cli__show_zephyr_kernel_runtime_cycle_count }
+    { "cycles", "show Zephyr kernel cycles count", &cli_report_kcycles },
+    { "demodma", "disable Pico DMA demo output", &cli_set_unset_dma_demo }
 };
 
 
@@ -310,12 +298,22 @@ uint32_t printk_cli(const char* message)
 
 
 
-int cli__banner_message(void)
+uint32_t cli_banner_message(const char* args)
 {
-    printk_cli("*** DEV 0613 RPi Pico Work - DEV 0613 ***\n");
+    printk_cli(TERM_STRING);
+    k_msleep(5);
+    printk_cli("\n\r**\n\r*** RPi Pico Zephyr Exploration banner message ***\n\r**");
     return 0;
 }
 
+uint32_t cli_report_kcycles(const char* args)
+{
+    unsigned int k_cycles = k_cycle_get_32();
+    char lbuf[SIZE_OF_MESSAGE_SHORT] = {0};
+    snprintf(lbuf, SIZE_OF_MESSAGE_SHORT, "kernel cycles at %u\n", k_cycles);
+    printk_cli(lbuf);
+    return 0;
+}
 
 
 
@@ -377,7 +375,7 @@ void initialize_command_handler(void)
 
 // First stuff out the CLI UART:
     printk_cli("\n\n\n\n\n");
-    rstatus = cli__banner_message();
+    rstatus = cli_banner_message("placeholder_arg_string");
     show_prompt();
 }
 
@@ -395,16 +393,15 @@ void clear_latest_command_string(void)
 // --- 1118 b DEV BEGIN ---
 void delete_one_char_from_latest_command_string(void)
 {
+#if BACKSPACE_DEBUG == 1
     char lbuf[DEFAULT_MESSAGE_SIZE];
+#endif
     uint32_t command_length = strlen(latest_command);
 
 #define BACKSPACE_DEBUG 0
 #if BACKSPACE_DEBUG == 1
     snprintf(lbuf, DEFAULT_MESSAGE_SIZE, "- before backspace - present command length is %u\n\r", command_length);
     printk_cli(lbuf);
-#endif
-#if 0
-//    if ( flag_fresh_backspace_keypress == TRUE )
 #endif
 
     if ( command_length > 0 )
@@ -430,7 +427,7 @@ void delete_one_char_from_latest_command_string(void)
 
 
 
-#define PS1 "\n\rkd-demo > "
+#define PS1 "\n\rrpi-demo > "
 
 void show_prompt(void)
 {
@@ -540,11 +537,6 @@ uint32_t build_command_string(const char* latest_input, const struct device* cal
     {
         delete_one_char_from_latest_command_string();
     }
-//    else
-//    {
-//        flag_fresh_backspace_keypress = TRUE;
-//    }
-
 
     if ( latest_input[0] == 0x2F )    // . . . '/' forward slash character
     {
@@ -938,7 +930,7 @@ uint32_t output_data_rate_handler(const char* args)
 #endif // 0 - DEV 0613 -
 
 
-uint32_t cli__help_message(const char* args)
+uint32_t cli_help_message(const char* args)
 {
 #define WIDTH_OF_BULLET_POINT (3)
 #define WIDTH_OF_COMMAND_TOKEN_OR_NAME (12)

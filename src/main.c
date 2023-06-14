@@ -45,6 +45,7 @@ LOG_MODULE_REGISTER(main);
 #include "development-defines.h"
 #include "thread-led.h"
 #include "thread-hello-dma.h"
+#include "thread-simple-cli.h"
 
 
 
@@ -158,7 +159,7 @@ void main(void)
          
         memset(lbuf, '.', count_for_mark_messages);
 
-        printk("- MARK - ( rpi work 2022-08-08 )");
+        printk("- MARK 0614 -");
         printk("%s", lbuf);
         printk("\n\r");
 // --- DEV END :: UART stuff ---

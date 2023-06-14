@@ -22,6 +22,7 @@ target_sources(app PRIVATE
   src/thread-hello-dma.c
   src/local_rpi_platform_base.c
   src/thread-simple-cli.c
+  src/commands.c
 )
 
 

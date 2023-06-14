@@ -43,6 +43,10 @@
 
 static uint32_t sleep_period__thread_hello_dma__fsv = SLEEP_TIME__THREAD_HELLO_DMA__MS;
 
+bool demo_enabled_fsv = true;
+
+void thread_hello_dma_entry_point(void* arg1, void* arg2, void* arg3);
+
 
 
 //----------------------------------------------------------------------
@@ -59,7 +63,7 @@ int thread_hello_dma__initialize(void)
 
     k_tid_t thread_hello_dma__tid = k_thread_create(&thread_hello_dma__thread_data, thread_hello_dma__stack_area,
                                             K_THREAD_STACK_SIZEOF(thread_hello_dma__stack_area),
-                                            thread_hello_dma__entry_point,
+                                            thread_hello_dma_entry_point,
                                             NULL, NULL, NULL,
                                             THREAD_HELLO_DMA__PRIORITY,
                                             0,
@@ -73,9 +77,17 @@ int thread_hello_dma__initialize(void)
     return (int)thread_hello_dma__tid;
 }
 
+void thread_hello_dma_set_unset_demo(bool option)
+{
+    demo_enabled_fsv = option;
+}
 
 
-void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
+//----------------------------------------------------------------------
+// - SECTION - routines private
+//----------------------------------------------------------------------
+
+void thread_hello_dma_entry_point(void* arg1, void* arg2, void* arg3)
 {
 // Data will be copied from src to dst
     const char src[] = "Hello, world! (from DMA)";
@@ -110,13 +122,14 @@ void thread_hello_dma__entry_point(void* arg1, void* arg2, void* arg3)
         true           // Start immediately.
     );
 
-
-
-    while ( 1 )
+    while (1)
     {
         k_msleep(sleep_period__thread_hello_dma__fsv);
 
-        puts(dst);
+        if (demo_enabled_fsv)
+        {
+            puts(dst);
+        }
     }
 }
 
