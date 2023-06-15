@@ -12,9 +12,19 @@ project(rpi-pico-exploration)
 ## - SECTION - application files
 ##----------------------------------------------------------------------
 
+# 2023-06-14 NOTE, following `modules/hal/rpi_pico` paths support header
+#  file dependencies of pulled in `uart_advanced.c` source file:
+
 target_include_directories(app PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/hardware_irq/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/common/pico_stdlib/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/pico_stdio/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/common/pico_time/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/common/pico_sync/include"
 )
+
+# ./modules/hal/rpi_pico/src/rp2_common/hardware_irq/include/hardware/irq.h
 
 target_sources(app PRIVATE
   src/main.c
@@ -23,6 +33,9 @@ target_sources(app PRIVATE
   src/local_rpi_platform_base.c
   src/thread-simple-cli.c
   src/commands.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/hardware_irq/irq.c
+#  src/uart_advanced.c
+  src/thread-uart-advanced.c
 )
 
 

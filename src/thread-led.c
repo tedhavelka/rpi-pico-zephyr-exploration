@@ -32,11 +32,9 @@
 // - SECTION - stuff mostly to refactor to better file locations:
 //----------------------------------------------------------------------
 
-#define THREAD_LED__PRIORITY (8)
+#define THREAD_LED__PRIORITY 8
 #define MODULE_ID__THREAD_LED "thread-led"
-#define SLEEP_TIME__THREAD_LED__MS (750)
-
-//#define LED0_NODE DT_ALIAS(led0)
+#define SLEEP_TIME__THREAD_LED__MS 750
 
 // - DEV 0419 ----------------------------------------------------------
 #if 0

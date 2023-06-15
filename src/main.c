@@ -28,17 +28,14 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main);
 
-
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/device.h>
 
 #include <zephyr/drivers/led_strip.h>   // to provide ...
 
-
 // Pico SDK headers:
 //#include <platform.h>
-
 
 // 2022-08-04 added for simple factoring during early UART tests:
 #include "main.h"
@@ -46,6 +43,7 @@ LOG_MODULE_REGISTER(main);
 #include "thread-led.h"
 #include "thread-hello-dma.h"
 #include "thread-simple-cli.h"
+#include "thread-uart-advanced.h"
 
 
 
@@ -62,7 +60,6 @@ LOG_MODULE_REGISTER(main);
 // Following symbol sets a modest upper bound on periodic "mark" message, akin to heartbeat LED:
 #define MARK_CYCLE_LENGTH 6
 
-
 /*
  * A build error on this line means your board is unsupported.
  * See the sample documentation for information on how to fix this.
@@ -71,7 +68,6 @@ LOG_MODULE_REGISTER(main);
 #ifdef DEV_0805_KEEP_BLINKY_CODE_ENABLED
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 #endif
-
 
 #ifdef DEV_0805__WS2812_BRING_UP_WORK_ON_RP2040
 
@@ -105,6 +101,8 @@ static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 // - SECTION - routines
 //----------------------------------------------------------------------
 
+extern int main_for_advanced_uart_init(void);
+
 void main(void)
 {
     int rstatus = 0;
@@ -135,6 +133,11 @@ void main(void)
     rstatus |= initialize_thread_simple_cli();
 #endif // - DEV 0613 -
 
+// - DEV 0614 -
+//    main_for_advanced_uart_init();
+    initialize_thread_uart_advanced();
+// - DEV 0614 -
+
     while (1)
     {
 #ifdef DEV_0808__BLINK_FROM_MAIN_NOT_FROM_THREAD
@@ -145,8 +148,6 @@ void main(void)
         }
 #endif
 
-
-// --- DEV BEGIN :: UART stuff ---
         if ( count_for_mark_messages < MARK_CYCLE_LENGTH )
         {
             count_for_mark_messages++;
@@ -162,7 +163,6 @@ void main(void)
         printk("- MARK 0614 -");
         printk("%s", lbuf);
         printk("\n\r");
-// --- DEV END :: UART stuff ---
 
         k_msleep(SLEEP_TIME_MS);
     }
