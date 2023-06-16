@@ -35,7 +35,11 @@ LOG_MODULE_REGISTER(main);
 #include <zephyr/drivers/led_strip.h>   // to provide ...
 
 // Pico SDK headers:
-//#include <platform.h>
+// Following header from ../modules/hal/rpi_pico/src/rp2040/hardware_regs/include/hardware/regs/intctrl.h
+#include "hardware/regs/intctrl.h" // to provide UART0_IRQ
+
+// Following Pico-SDK header provides several low level, static in-line functions:
+#include "hardware/uart.h"         // to provide uart_is_readable, uart_getc, uart_is_writable, uart_putc
 
 // 2022-08-04 added for simple factoring during early UART tests:
 #include "main.h"
@@ -44,6 +48,7 @@ LOG_MODULE_REGISTER(main);
 #include "thread-hello-dma.h"
 #include "thread-simple-cli.h"
 #include "thread-uart-advanced.h"
+#include "uart-advanced.h"
 
 
 
@@ -52,7 +57,7 @@ LOG_MODULE_REGISTER(main);
 //----------------------------------------------------------------------
 
 // 1000 msec = 1 sec
-#define SLEEP_TIME_MS   10000
+#define SLEEP_TIME_MS  4000
 
 // The devicetree node identifier for the "led0" alias.
 #define LED0_NODE DT_ALIAS(led0)
@@ -95,6 +100,7 @@ static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 // --- DEV END :: WS2812 test ---
 #endif // DEV_0805__WS2812_BRING_UP_WORK_ON_RP2040
 
+static bool global_flag_fsv = 0;
 
 
 //----------------------------------------------------------------------
@@ -102,6 +108,34 @@ static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 //----------------------------------------------------------------------
 
 extern int main_for_advanced_uart_init(void);
+
+// From Pico SDK sample:
+static int chars_rxed = 0;
+
+static void rpi_pico_uart1_isr(const struct device *dev)
+{
+    ARG_UNUSED(dev);
+
+    global_flag_fsv = 1;
+
+#define UART_ID uart1
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// From Pico SDK sample:
+    while (uart_is_readable(UART_ID))
+    {
+        uint8_t ch = uart_getc(UART_ID);
+
+        // Can we send it back?
+        if (uart_is_writable(UART_ID))
+        {
+            // Change it slightly first!
+            ch++;
+            uart_putc(UART_ID, ch);
+        }
+        chars_rxed++;
+    }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+}
 
 void main(void)
 {
@@ -131,15 +165,35 @@ void main(void)
 
 #if 1 // - DEV 0613 -
     rstatus |= initialize_thread_simple_cli();
+    k_msleep(500);
 #endif // - DEV 0613 -
 
+#if 1
+#define DEV_0615_DEFAULT_PRIORITY 1
+#define UART_NODE DT_NODELABEL(uart_0)
+    printk("- main.c - calling IRQ_CONNECT(), will send mark after call . . .\n");
+    IRQ_CONNECT(UART1_IRQ, DEV_0615_DEFAULT_PRIORITY, rpi_pico_uart1_isr, DEVICE_DT_GET(UART_NODE), 0);
+    printk("- MARK 0 -\n");
+    k_msleep(1500);
+#endif
+#if 0
+    printk("- DEV 0615 - symbols UART0_IRQ, UART1_IRQ assigned valueos of %u, %u\n",
+      UART0_IRQ, UART1_IRQ);
+#endif
+
 // - DEV 0614 -
-//    main_for_advanced_uart_init();
-    initialize_thread_uart_advanced();
+    printk("- main.c - calling Pico UART DMA sample code . . .\n");
+    main_for_advanced_uart_init();
+    k_msleep(500);
+    printk("- MARK 1 -\n");
+//    initialize_thread_uart_advanced();  . . . build time error regarding conflicting defines of arch_irq_is_enabled or similar
 // - DEV 0614 -
+
 
     while (1)
     {
+//        printk("- MARK 2 - main.c top of `while (1)` loop,\n");
+
 #ifdef DEV_0808__BLINK_FROM_MAIN_NOT_FROM_THREAD
         ret = gpio_pin_toggle_dt(&led);
 

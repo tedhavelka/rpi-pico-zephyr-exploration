@@ -60,4 +60,7 @@
 
 };
 
-
+// - DEV 0615 - attempting to assure we have device tree nodelabel to reference in DT_NODELABEL() macro:
+uart_0: &uart0 {
+        status = "okay";
+};

@@ -22,6 +22,10 @@ target_include_directories(app PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/pico_stdio/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/common/pico_time/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/common/pico_sync/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2040/hardware_regs/include"
+# Following include path pulls in RPi Pico "hardware/uart.h" but not sufficient to provide defs to linker
+# for uart_is_readable(), uart_getc(), uart_is_writable(), uart_putc():
+  "${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/hardware_uart/include"
 )
 
 # ./modules/hal/rpi_pico/src/rp2_common/hardware_irq/include/hardware/irq.h
@@ -34,8 +38,7 @@ target_sources(app PRIVATE
   src/thread-simple-cli.c
   src/commands.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/hardware_irq/irq.c
-#  src/uart_advanced.c
-  src/thread-uart-advanced.c
+  src/uart_advanced.c
 )
 
 
@@ -52,6 +55,7 @@ target_include_directories(app PRIVATE
   "../modules/hal/rpi_pico/src/"
   "../modules/hal/rpi_pico/src/rp2_common/hardware_dma/include/"
   "../modules/hal/rpi_pico/src/rp2_common/hardware_claim/include/"
+# Only header file here is platform.h:
   "../modules/hal/rpi_pico/src/host/pico_platform/include/pico/"
 )
 

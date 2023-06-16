@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-
+// Pico SDK includes:
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
+
+// Zephyr RTOS includes:
+#include <zephyr/kernel.h>
+
 
 
 /// \tag::uart_advanced[]
@@ -41,7 +45,7 @@ void on_uart_rx() {
 
 int main_for_advanced_uart_init() {
     // Set up our UART with a basic baud rate.
-    uart_init(UART_ID, 2400);
+    uart_init(UART_ID, 115200); // baud in sample code was 2400
 
     // Set the TX and RX pins by using the function select on the GPIO
     // Set datasheet for more information on function select
@@ -79,8 +83,15 @@ int main_for_advanced_uart_init() {
     // The handler will count them, but also reflect the incoming data back with a slight change!
     uart_puts(UART_ID, "\nHello, uart interrupts\n");
 
+#if 0
     while (1)
-        tight_loop_contents();
+    {
+//        tight_loop_contents();  // <-- this appears to be a Pico SDK construct - TMH
+        k_msleep(5000);
+    }
+#else
+    return 0;
+#endif
 }
 
 /// \end:uart_advanced[]
