@@ -72,6 +72,11 @@
 //----------------------------------------------------------------------
 
 /*
+   [ ] TO DO 2023-06-15 - Identify UART receive and transmit functions
+                          and or code, to encapulate in one or two
+                          wrapper functions to which a CLI session
+                          structure may point via C function pointer
+                          types.
 
    [x] TO DO 2021-11-17 - Implement simple backspace character-wise deletion on input line
         DONE 2021-11-18
@@ -161,7 +166,7 @@
 
 
 //----------------------------------------------------------------------
-// - SECTION - DEVELOPMENT FLAGS
+// - SECTION - global and file scoped
 //----------------------------------------------------------------------
 
 // Latest parsed arguments:
@@ -232,8 +237,8 @@ struct cli_command_writers_api
 
 struct cli_command_writers_api kd_command_set[] =
 {
-    { "help", "show supported Kionix demo CLI commands", &cli_help_message },
-    { "?", "show supported Kionix demo CLI commands", &cli_help_message },
+    { "help", "show supported CLI commands", &cli_help_message },
+    { "?", "show supported CLI commands", &cli_help_message },
     { "banner", "show brief application identifier string", &cli_banner_message },
 //    { "version", "show application version info", &cli__kd_version },
 
@@ -975,16 +980,26 @@ void simple_cli_thread_entry_point(void* arg1, void* arg2, void* arg3)
 
 #define UART2_NODE DT_NODELABEL(uart0)
     uart_for_cli = DEVICE_DT_GET(UART2_NODE);
-
+#if 0
     if ( uart_for_cli == NULL )
-    {   
-        dmsg("Failed to assign pointer to UART2 device!\n", PROJECT_DIAG_LEVEL);
-    } 
+    {
+        dmsg("- thread-simple-cli.c - WARNING: Failed to assign pointer to CLI UART device!\n",
+          PROJECT_DIAG_LEVEL);
+    }
+#endif
+    if (!device_is_ready(uart_for_cli))
+    {
+        dmsg("- thread-simple-cli.c - WARNING: CLI UART device not ready!\n",
+          PROJECT_DIAG_LEVEL);
+        return;
+    }
 
     initialize_command_handler();
 
     while (1)
     {
+// NOTE 2023-06-16 - Something strange, following IF test needed to avoid early
+//  Zephyr hardfault:
         if ( uart_for_cli != NULL )
         {
             memset(lbuf, 0, sizeof(lbuf));
@@ -996,6 +1011,11 @@ void simple_cli_thread_entry_point(void* arg1, void* arg2, void* arg3)
                 build_command_string(msg, uart_for_cli);
             }
         }
+// NOTE 2023-06-16 - Something else strange, following else block causes early Zephyr hardfault:
+//        else
+//        {
+//            printk("!\n");
+//        }
 
         k_msleep(SLEEP_TIME__SIMPLE_CLI__MS);
     }

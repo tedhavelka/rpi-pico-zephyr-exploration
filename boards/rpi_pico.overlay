@@ -7,7 +7,6 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/led/led.h>
 
-
 /* https://developer.toradex.com/linux-bsp/how-to/device-tree/device-tree-customization/ */
 
 /*
@@ -25,39 +24,6 @@
         aliases {
                 red-led = &led1;
         };
-};
-
-/ {
-    soc {
-
-// Notes:
-// (1) Beyond RP2040.pdf datasheet DMA chapter see also section 2.2.2 "Detail" under 2.2 "Address Map",
-//      this reference used to make best guess for DMA reg property size of 0x1000.
-// (2) https://elixir.bootlin.com/linux/v3.12.36/source/Documentation/devicetree/bindings/dma/dma.txt
-//      This reference explains meaning and typical use of #dma-cells node property
-//      of the DMA device node.  Here choose one per file
-//      [workspace]/zephyr/dts/bindings/dma/snps,designware-dma.yaml
-// (3) See RP2040.pdf datasheet section 2.3.2, table 80 "Interrupts" for choice of 11 and 12
-//      in DMA interupts node property.
-
-        dma1: dma@50000000 {
-            compatible = "snps,designware-dma";
-            reg = <0x50000000 0x1000>;
-            #dma-cells = <1>;
-            interrupts = <11 RPI_PICO_DEFAULT_IRQ_PRIORITY 12 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
-            status = "okay";
-            label = "DMA_1";
-        };
-
-/*
-    Sample code from [workspace]/zephyr//dts/arm/st/f4/stm32f4.dtsi:
-
-            interrupts = <11 0 12 0 13 0 14 0 15 0 16 0 17 0 47 0>;
-            clocks = <&rcc STM32_CLOCK_BUS_AHB1 0x200000>;
-*/
-
-    };
-
 };
 
 // - DEV 0615 - attempting to assure we have device tree nodelabel to reference in DT_NODELABEL() macro:

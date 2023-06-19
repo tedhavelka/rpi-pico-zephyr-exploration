@@ -1,0 +1,30 @@
+2023-06-15 THU
+
+Text bounded by dashed lines below is minicom capture and sample of
+output from Pico-SDK sample application dubbed "advanced UART".  This
+sample app configures an RP2040 UART for use with DMA, and sets up
+a hardware interrupt. 
+
+The sample app specifically processes one characters at a time from the
+UART's RX buffer, increments its ASCII value by one and echoes that
+incremented value back via the TX line.  This incrementing is evident
+in the output.
+
+Minicom defaults to terminal "echo off".  The echo of user input to
+minicom has been turned on to produce the captured sample app output
+interlaced with user input:
+
+------------------------------------------------------------------------
+�                                       
+ Hello, uart interrupts                 
+                                        
+abbccddedecdbcabz{yz                    
+12
+23
+34
+ab
+bc
+cd
+------------------------------------------------------------------------
+
+

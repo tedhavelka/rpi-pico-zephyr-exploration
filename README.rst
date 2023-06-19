@@ -1,23 +1,32 @@
-.. _blinky-sample:
-
-Blinky
-######
+RPi Pico Zephyr Explorations
+#############################
 
 Overview
 ********
 
-The Blinky sample blinks an LED forever using the :ref:`GPIO API <gpio_api>`.
+Project to explore capabilities of RPi Pico development board, a readily available and inexpensive board featuring the RP2040 dual-core Cortex-M0 processor.  The first two non-trivial efforts to exercise Pico-SDK functionality within a Zephyr based app involve bringing up Pico examples for `DMA <https://github.com/raspberrypi/pico-examples/tree/master/dma/hello_dma>`_, and for `DMA driven UART <https://github.com/raspberrypi/pico-examples/tree/master/uart/uart_advanced>`_.
 
-The source code shows how to:
+The work in this repository is minimal and something of a code chimera.  Only about a year ago around 2022 June did full device tree support come into the Zephyr RTOS source tree.  RPi Pico SDK has since been integrated under Zephyr Project modules directory `hal_rpi_pico <https://github.com/zephyrproject-rtos/hal_rpi_pico>`_.  Pico SDK examples however are not part of `Zephyr v3.3.0 manifest included projects <https://github.com/zephyrproject-rtos/hal_rpi_pico>`_.
 
-#. Get a pin specification from the :ref:`devicetree <dt-guide>` as a
-   :c:struct:`gpio_dt_spec`
-#. Configure the GPIO pin as an output
-#. Toggle the pin forever
+Specific Works Within This Project
+**********************************
 
-See :ref:`pwm-blinky-sample` for a similar sample that uses the PWM API instead.
+Work in this tiny project to bring up RPi Pico advanced UART code is an effort to enable interrupt driven or DMA driver UART functions, plus a second UART beyond the default UART called out implicitly by RPi Pico hello_world sample app.  Project need for multiple UARTs goes to the goal to implement a simple command line interface, whose body of code can be instantiated to support multiple CLI sessions in a given firmware application.
 
-.. _blinky-sample-requirements:
+A further goal is to decouple this CLI from specific targeted processors, through wrapper API functions which connect to UART or other I/O device to provide read and write byte streams.
+
+A third goal is to design CLI to be scheduler and RTOS agnostic, again decoupled.  In summary the three starting goals for the CLI, which this project aims to test on an RPi Pico dev board first, are:
+
+1.  command line interface (CLI) supporting multiple sessions
+2.  CLI decoupled from target processor hardware details
+3.  CLI decoupled from presence of RTOS and from any given RTOS
+
+Specific Issues 2023 Q2
+************************
+
+To enable RP2040 DMA functionality, and further use of DMA in a UART sample code has required some messy hacking in this project's top level CMakeLists.txt file.  Further, when Pico SDK calls enable a hardware interrupt in the RP2040 Zephyr does not automatically know about these interrupts.  We see this as our Zephyr app crashes early on, complaining of an undefined or unknown interrupt.
+
+This interrupts problem can be solved by use of Zephyr's `IRQ_CONNECT()` macro, but this arrangement of Pico SDK calls and Zephyr macros and calls is far from ideal.  At this early stage we are focused on getting functionalities to work.  As this effort progresses we want to review and improve the hacked code whereever we can find good ways to do so.
 
 Requirements
 ************
@@ -25,22 +34,28 @@ Requirements
 Your board must:
 
 #. Have an LED connected via a GPIO pin (these are called "User LEDs" on many of
-   Zephyr's :ref:`boards`).
+   `Zephyr's boards <https://github.com/zephyrproject-rtos/zephyr/tree/main/boards>`_).
 #. Have the LED configured using the ``led0`` devicetree alias.
+
+To exercise and work with the command line interface (CLI) you must have some
+type of serial interface cable to a computer or terminal device.  An example
+cable is an FTDI 3.3 volt USB-to-serial adapter.  On Linux based workstations
+FTDI cables when attached to a USB port appear in /dev as devices with names
+of the form `ttyUSBn`, where `n` is zero or a positive small integer.
+
+You'll need a terminal emulation program such as `minicom` or similar when
+using a laptop or PC to communicate serially with your target board.
 
 Building and Running
 ********************
 
-Build and flash Blinky as follows, changing ``reel_board`` for your board:
+Typical build invocation assumes Zephyr toolchain properly installed, and interaction via `west` command line Python based utility:
 
-.. zephyr-app-commands::
-   :zephyr-app: samples/basic/blinky
-   :board: reel_board
-   :goals: build flash
-   :compact:
+.. code-block::  shell
 
-After flashing, the LED starts to blink. If a runtime error occurs, the sample
-exits without printing to the console.
+    $ west build -b rpi_pico -p always
+
+The board name `rpi_pico` may be substituted with the name of another Zephyr supported target board.
 
 Build errors
 ************
@@ -76,20 +91,34 @@ To add support for your board, add something like this to your devicetree:
    };
 
 The above sets your board's ``led0`` alias to use pin 13 on GPIO controller
-``gpio0``. The pin flags :c:macro:`GPIO_ACTIVE_HIGH` mean the LED is on when
+``gpio0``. The pin flags `GPIO_ACTIVE_HIGH` mean the LED is on when
 the pin is set to its high state, and off when the pin is in its low state.
 
-Tips:
+Tips and General References:
+****************************
 
-- See :dtcompatible:`gpio-leds` for more information on defining GPIO-based LEDs
-  in devicetree.
+- To learn how to set up Zephyr's toolchain visit https://docs.zephyrproject.org/latest/develop/getting_started/index.html.
 
-- If you're not sure what to do, check the devicetrees for supported boards which
-  use the same SoC as your target. See :ref:`get-devicetree-outputs` for details.
+- To see what some developers are building using Zephyr and some open hardware dev
+  boards, visit Jared Wolff's community forum at https://community.circuitdojo.com/.
 
-- See :zephyr_file:`include/zephyr/dt-bindings/gpio/gpio.h` for the flags you can use
-  in devicetree.
+- To see which development boards and targeted hardwares are supported by Zephyr
+  RTOS, navigate to the boards directory and choose your processor architecture.
+  For example when building projects to run on ARM 32-bit microcontrollers the
+  boards which current Zephyr RTOS supports appear in https://github.com/zephyrproject-rtos/zephyr/tree/main/boards/arm.
 
-- If the LED is built in to your board hardware, the alias should be defined in
-  your :ref:`BOARD.dts file <devicetree-in-out-files>`. Otherwise, you can
-  define one in a :ref:`devicetree overlay <set-devicetree-overlays>`.
+- See https://github.com/zephyrproject-rtos/zephyr/blob/main/dts/bindings/gpio/gpio-controller.yaml
+  for the flags you can use in devicetree.
+
+- If the LED is built in to your board hardware, the alias should be defined among
+  your boards device tree source files.  Typical file to define all or most board
+  features is a file named [board_name].dtsi.  A few examples:
+
+  *  Sparkfun Thing Plus nRF9160 . . . `zephyr/boards/arm/sparkfun_thing_plus_nrf9160/sparkfun_thing_plus_nrf9160_common.dtsi`
+
+  *  Nordic Semi nRF9160         . . . `zephyr/blob/main/boards/arm/nrf9160dk_nrf9160/nrf9160dk_nrf9160_common.dtsi`
+
+  *  RPi Pico board              . . . `https://github.com/zephyrproject-rtos/zephyr/blob/main/boards/arm/rpi_pico/rpi_pico-common.dtsi`
+
+  For a Zephyr based app an LED may be added to a board overlay file, written
+  in device tree source as in the code excerpt just before this "Tips" section.

@@ -39,6 +39,7 @@ target_sources(app PRIVATE
   src/commands.c
   ${CMAKE_CURRENT_SOURCE_DIR}/../modules/hal/rpi_pico/src/rp2_common/hardware_irq/irq.c
   src/uart_advanced.c
+  src/diagnostics.c
 )
 
 

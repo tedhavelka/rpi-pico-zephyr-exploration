@@ -1,20 +1,12 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ *  Copyright (c) 2023 Neela Nurseries
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Project:  https://github.com/tedhavelka/rpi-pico-zephyr-exploration
+ *  Project:  https://github.com/tedhavelka/rpi-pico-zephyr-exploration
  *
- * File:  main.c
+ *  File:  main.c
  */
-
-
-
-//----------------------------------------------------------------------
-// - SECTION - Pico SDK excerpt temporarily here to overcome build error with platform_base.h
-//----------------------------------------------------------------------
-
-
 
 
 
@@ -57,7 +49,7 @@ LOG_MODULE_REGISTER(main);
 //----------------------------------------------------------------------
 
 // 1000 msec = 1 sec
-#define SLEEP_TIME_MS  4000
+#define SLEEP_TIME_MS 15000
 
 // The devicetree node identifier for the "led0" alias.
 #define LED0_NODE DT_ALIAS(led0)
@@ -192,8 +184,6 @@ void main(void)
 
     while (1)
     {
-//        printk("- MARK 2 - main.c top of `while (1)` loop,\n");
-
 #ifdef DEV_0808__BLINK_FROM_MAIN_NOT_FROM_THREAD
         ret = gpio_pin_toggle_dt(&led);
 

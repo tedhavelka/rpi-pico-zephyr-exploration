@@ -1,0 +1,56 @@
+
+
+This excerpt from Kionix Driver CLI works with a command building function which is designed to consider and when appropriate append one character at a time to a growing command string:
+
+ 991     while (1)
+ 992     {
+ 993         if ( uart_for_cli != NULL )
+ 994         {
+ 995             memset(lbuf, 0, sizeof(lbuf));
+ 996             msg = lbuf;
+ 997             uart_poll_in(uart_for_cli, msg);
+ 998 
+ 999             if ( strlen(msg) > 0 )
+1000             {
+1001                 build_command_string(msg, uart_for_cli);
+1002             }
+1003         }
+1004 
+1005         k_msleep(SLEEP_TIME__SIMPLE_CLI__MS);
+1006     }
+
+This code works for human input character streams but we need to test and see whether it works for a multi-byte stream at 115200 baud and similar.  That may be too fast a data rate with the sleep time at the end of the `while (1)` loop being at shortest a millisecond in duration.
+
+The UART device is limited to Zephyr's wrapper API `uart_poll_in()`, which is as reflected by its name a polling function.  Some devices will be interrupt driven and not require not fit with a polling model.
+
+Here is the ISR code from Pico SKD "advanced UART" sample app:
+
+
+107 static void rpi_pico_uart1_isr(const struct device *dev)
+108 {
+109     ARG_UNUSED(dev);
+110 
+111     global_flag_fsv = 1;
+112 
+113 #define UART_ID uart1
+114 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+115 // From Pico SDK sample:
+116     while (uart_is_readable(UART_ID))
+117     {
+118         uint8_t ch = uart_getc(UART_ID);
+119 
+120         // Can we send it back?
+121         if (uart_is_writable(UART_ID))
+122         {
+123             // Change it slightly first!
+124             ch++;
+125             uart_putc(UART_ID, ch);
+126         }
+127         chars_rxed++;
+128     }
+129 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+130 }
+
+
+DESIGN QUESTION:  What kind of wrapper function can we design which can connect a command building function to both types of data streeam handlers, one polling and one interrupt driven?
+
